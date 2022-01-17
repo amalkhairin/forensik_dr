@@ -1,35 +1,55 @@
 import cv2
 import numpy as np
+from sklearn.metrics import confusion_matrix 
+from sklearn.metrics import accuracy_score
+from sklearn.metrics import classification_report
+import cv2
+from PIL import Image
 
-def calculateEvaluationValue(tp, tn, fn, fp):
-    TNR = (tn / (fp + tn)) * 100
-    TPR = (tp / (tp + tn)) * 100
-    FPR = (fp / (fp + tn)) * 100
-    acc = ((tp + tn) / (tp + tn + fp + fn)) * 100
-    return TNR, TPR, FPR, acc
+img1 = Image.open("/content/img2_groundtruth_noise40db.png")
+img2 = Image.open("/content/img2_noise40db.png")
+img1 = img1.getdata()
+img2 = img2.getdata()
+img1 = np.array([img1])
+img2 = np.array([img2])
 
+mse = np.sum((img1.astype(float) - img2.astype(float)) ** 2) / (img1.shape[0] * img2.shape[0])
 
-def calculateValue(img_a, img_b):
-    x, y = img_a.shape[0:2]
-    tp, tn, fn, fp, = 0, 0, 0, 0
-    for i in range(x):
-        for j in range(y):
-            if sum(img_a[i, j]) == 0 and sum(img_b[i, j]) == 0:
-                tn += 1
-            elif sum(img_a[i, j]) == 765 and sum(img_b[i, j]) == 765:
-                tp += 1
-            elif sum(img_a[i, j]) == 0 and sum(img_b[i, j]) == 765:
-                fn += 1
-            elif sum(img_a[i, j]) == 765 and sum(img_b[i, j]) == 0:
-                fp += 1
-    return tp, tn, fp, fn
+img1 = img1.flatten()
+img2 = img2.flatten()
 
+CM = confusion_matrix(img1, img2)
+fpp = CM.sum(axis=0) - np.diag(CM)
+fnn = CM.sum(axis=1) - np.diag(CM)
+tpp = np.diag(CM)
+tnn = CM.sum() - (FP + FN + TP)
 
-img1_path = "region_duplication/dataset/img1_tampered.png"
-img2_path = "region_duplication/dataset/img1_tampered.png"
-img1 = cv2.imread(img1_path)
-img2 = cv2.imread(img2_path)
-tp, tn, fp, fn = calculateValue(img1, img2)
-tnr, tpr, fpr, acc = calculateEvaluationValue(tp, tn, fn, fp)
+# Sensitivity, hit rate, recall, or true positive rate
+TPR = TP/(TP+FN)
+# Specificity or true negative rate
+TNR = TN/(TN+FP)
+# Precision or positive predictive value
+PPV = TP/(TP+FP)
+# Negative predictive value
+NPV = TN/(TN+FN)
+# Fall out or false positive rate
+FPR = FP/(FP+TN)
+# False negative rate
+FNR = FN/(TP+FN)
+# False discovery rate
+FDR = FP/(TP+FP)
+
+# Overall accuracy
+ACC = (TP+TN)/(TP+FP+FN+TN)
+# print(fpp, fnn, tpp, tnn)
+print('''
+    Accuracy: {1}
+    MSE     : {2}
+    TPR     : {3}
+    TNR     : {4}
+    FPR     : {5}
+    FNR     : {6}
+'''.format(ACC, mse, TPR, TNR, FPR, FNR))
+
 print("Akurasi: ", acc)
 print("fpr: ", fpr)
