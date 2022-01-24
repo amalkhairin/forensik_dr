@@ -12,10 +12,15 @@ def addNoise(img, db):
 
 
 image_path = "region_duplication/dataset/img1_tampered.png"
+image2_path = "20220116_134554_img1_tampered.png"
 image = cv2.imread(image_path)
+image2 = cv2.imread(image2_path)
 i_array = np.array(image / 255)
-noisy_image = add_noise(i_array, 40)
+j_array = np.array(image2 / 255)
+noisy_image = addNoise(i_array, 10)
+noisy_image2 = addNoise(j_array, 10)
 noisy_image = np.uint8(noisy_image * 255)
-cv2.imshow("Noisy_Image.png", noisy_image)
-cv2.waitKey(0)
+noisy_image2 = np.uint8(noisy_image2 * 255)
+# cv2.imshow("Noisy_Image.png", noisy_image)
+# cv2.waitKey(0)
 cv2.imwrite("region_duplication/dataset/noise/Noisy_Image.png", noisy_image)

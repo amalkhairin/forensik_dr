@@ -6,6 +6,7 @@ from sklearn.metrics import classification_report
 import cv2
 from PIL import Image
 
+
 img1 = Image.open("/content/img2_groundtruth_noise40db.png")
 img2 = Image.open("/content/img2_noise40db.png")
 img1 = img1.getdata()
@@ -18,38 +19,36 @@ mse = np.sum((img1.astype(float) - img2.astype(float)) ** 2) / (img1.shape[0] * 
 img1 = img1.flatten()
 img2 = img2.flatten()
 
-CM = confusion_matrix(img1, img2)
-fpp = CM.sum(axis=0) - np.diag(CM)
-fnn = CM.sum(axis=1) - np.diag(CM)
-tpp = np.diag(CM)
-tnn = CM.sum() - (FP + FN + TP)
+tnn, fpp, fnn, tpp = confusion_matrix(img1, img2, labels=[0, 1]).ravel()
+
+# fpp = CM.sum(axis=0) - np.diag(CM)
+# fnn = CM.sum(axis=1) - np.diag(CM)
+# tpp = np.diag(CM)
+# tnn = CM.sum() - (fpp + fnn + tpp)
 
 # Sensitivity, hit rate, recall, or true positive rate
-TPR = TP/(TP+FN)
+TPR = tpp/(tpp+fnn)
 # Specificity or true negative rate
-TNR = TN/(TN+FP)
+TNR = tnn/(tnn+fpp)
 # Precision or positive predictive value
-PPV = TP/(TP+FP)
+PPV = tpp/(tpp+fpp)
 # Negative predictive value
-NPV = TN/(TN+FN)
+NPV = tnn/(tnn+fnn)
 # Fall out or false positive rate
-FPR = FP/(FP+TN)
+FPR = fpp/(fpp+tnn)
 # False negative rate
-FNR = FN/(TP+FN)
+FNR = fnn/(tpp+fnn)
 # False discovery rate
-FDR = FP/(TP+FP)
+FDR = fpp/(tpp+fpp)
 
 # Overall accuracy
-ACC = (TP+TN)/(TP+FP+FN+TN)
+ACC = (tpp+tnn)/(tpp+fpp+fnn+tnn)
 # print(fpp, fnn, tpp, tnn)
 print('''
-    Accuracy: {1}
-    MSE     : {2}
-    TPR     : {3}
-    TNR     : {4}
-    FPR     : {5}
-    FNR     : {6}
+    Accuracy: {0}
+    MSE     : {1}
+    TPR     : {2}
+    TNR     : {3}
+    FPR     : {4}
+    FNR     : {5}
 '''.format(ACC, mse, TPR, TNR, FPR, FNR))
-
-print("Akurasi: ", acc)
-print("fpr: ", fpr)
